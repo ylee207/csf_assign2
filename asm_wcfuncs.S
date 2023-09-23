@@ -111,7 +111,7 @@ wc_isspace:
 	ret
 
 .is_space:
-	movl $1, %eax
+	movl $1, %eax /* If jumped to here, it means it is a space character. So return 1. */
 	ret
 
 /*
