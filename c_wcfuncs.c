@@ -44,7 +44,7 @@ uint32_t wc_hash(const unsigned char *w) {
 // "hi" would compare as less than "high".
 int wc_str_compare(const unsigned char *lhs, const unsigned char *rhs) {
   int i;
-  for (i = 0; lhs[i] != '\0' || rhs[i] != 0; i++) {
+  for (i = 0; lhs[i] != '\0' && rhs[i] != '\0'; i++) {
     if(lhs[i] > rhs[i]) {
       return 1;
     }

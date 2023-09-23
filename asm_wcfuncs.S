@@ -57,7 +57,54 @@ wc_hash:
  */
 	.globl wc_str_compare
 wc_str_compare:
-	/* TODO: implement */
+	movl $0, %r10d /* Initialize for loop counter 'i' to 0 */
+	jmp .LcharCompareLoop /* After initializing index i = 0, go into the loop */
+
+.LcharCompareLoop:
+	leal (%rdi, %r10, 1), %edx /* Calculate the address of ith index element of &lhs */
+	movzbl (%rdx), %r11d /* Store the the dereferenced char at the ith index of lhs */
+	cmpl $'\0', %r11d /* Check if the ith char of lhs is not '\0'. If it is '\0', jump off the for loop */
+	je .LcheckPrefixOfOther /* If lhs[i] is '\0', we should jump to check if lhs or rhs has a prefix of each other to compare. */
+
+	leal (%rsi, %r10, 1), %ecx /* Calculate the address of ith index element of &rhs */
+	movzbl (%rcx), %r12d /* Store the dereferenced char at the ith index of rhs */
+	cmpl $'\0', %r12d /* Check if the ith char of rhs is not '\0'. If it is '\0', jump off the for loop */
+	je .LcheckPrefixOfOther /* If rhs[i] is '\0', we should jump to check if lhs or rhs has a prefix of each other to compare. */
+
+	cmpl %r12d, %r11d /* Compare rhs[i] and lhs[i] */
+	jg .LlhsGreaterThanRhs /* If lhs[i] is greater than rhs[i], then jump to return 1 */
+
+	cmpl %r12d, %r11d /* Compare rhs[i] and lhs[i] */
+	jl .LrhsGreaterThanLhs /* If rhs[i] is greater than lhs[i], then jump to return -1; */
+	
+	addl $1, %r10d /* Increment index i */
+	jmp .LcharCompareLoop /* Continue with the loop */
+
+		/* From this point, we are comparing if one string is a prefix of the other. */
+		/* Here, index i is the last char of of lhs or rhs. */
+		/* Specifically, index i will be the last index of the shorter one. */
+		/* If lhs[i] != '\0', then it means lhs is bigger because it has more chars after */
+		/* Likewise, if rhs[i] != '\0', then it means rhs is bigger because it has more chars after */
+.LcheckPrefixOfOther:
+	leal (%rdi, %r10, 1), %edx /* Calculate the address of lhs[i] */
+	movzbl (%rdx), %r11d /* Store lhs[i] */
+	cmpl $'\0', %r11d /* Check if lhs[i] is not '\0' */
+	jne .LlhsGreaterThanRhs /* If lhs[i] != '\0', then jump return 1 because it means lhs is bigger than rhs */
+
+	leal (%rsi, %r10, 1), %ecx /* Calculate the address of rhs[i] */
+	movzbl (%rcx), %r12d /* Store rhs[i] */
+	cmpl $'\0', %r12d /* Check if rhs[i] is not '\0' */
+	jne .LrhsGreaterThanLhs /* If rhs[i] != '\0', then jump return -1 because it means rhs is bigger than lhs */
+
+	movl $0, %eax /* Here, every char in string are the same, so return 0 */
+	ret
+
+.LlhsGreaterThanRhs:
+	movl $1, %eax /* This part implies that lhs is greater than rhs. So return 1 */
+	ret
+
+.LrhsGreaterThanLhs:
+	movl $-1, %eax /* This part implies that rhs is greater than lhs. So return -1 */
 	ret
 
 /*
@@ -123,7 +170,27 @@ wc_isspace:
  */
 	.globl wc_isalpha
 wc_isalpha:
-	/* TODO: implement */
+	cmpb $'A', %dil /* Check if c is greater than or equal to 'A'. If c < 'A', it means it is not greater or equal to 'A', so not an upper case letter. */
+	jl .check_lower_case /* If c < 'A', then jump to check_lower_case to check if it's lower case */
+
+	cmpb $'Z', %dil /* Check if c is less than or equal to 'Z'. If c > 'Z', it means it is not less than or equal to 'Z', so not an upper case letter. */
+	jg .check_lower_case /* If c > 'Z', then jump to check_lower_case to check if it's lower case */
+
+	movl $1, %eax /* Here, it means it is an upper case letter, so let's return 1 */
+	ret
+
+.check_lower_case:
+	cmpb $'a', %dil /* Here, it is not an upper case, so check if c is a lower case. (check if it's greater or equal to 'a' to be alphebetic) */
+	jl .not_alphabetic /* If c is less than 'a', then it is not a lower case (also not an upper case), so jump to return 0. */
+
+	cmpb $'z', %dil /* Here, it is not an upper case, so check if c is lower case. (check if it's less than or equal to 'z' to be alphabetic) */
+	jg .not_alphabetic /* If c is greater than 'z', then it is not a lower case (also not an upper case) */
+
+	movl $1, %eax /* Here, it means it is a lower case letter, so let's return 1 */ 
+	ret
+
+.not_alphabetic:
+	movl $0, %eax /* Here, it means it is neither a lower or upper, so let's return 0. */
 	ret
 
 /*
