@@ -89,7 +89,29 @@ wc_str_copy:
  */
 	.globl wc_isspace
 wc_isspace:
-	/* TODO: implement */
+	cmpb $' ', %dil /* Checks if c is a ' ' */
+	je .is_space /* If c is a ' ', jump to is_space to return 1 */
+
+	cmpb $'\t', %dil /* Checks if c is a '\t' */
+	je .is_space /* If c is a '\t', jump to is_space to return 1 */
+
+	cmpb $'\r', %dil /* Checks if c is a '\r' */
+	je .is_space /* If c is a '\r', jump to is_space to return 1 */
+
+	cmpb $'\n', %dil /* Checks if c is a '\n' */
+	je .is_space /* If c is a '\n', jump to is_space to return 1 */
+
+	cmpb $'\f', %dil /* Checks if c is a '\f' */
+	je .is_space /* If c is a '\f', jump to is_space to return 1 */
+
+	cmpb $'\v', %dil /* Checks if c is a '\v' */
+	je .is_space /* If c is a '\v', jump to is_space to return 1 */
+
+	movl $0, %eax /* if not '\t', '\r', '\n', '\f', or '\v', then return 0 */
+	ret
+
+.is_space:
+	movl $1, %eax
 	ret
 
 /*
