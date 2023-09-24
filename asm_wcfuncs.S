@@ -151,7 +151,7 @@ wc_isspace:
 	cmpb $'\f', %dil /* Checks if c is a '\f' */
 	je .is_space /* If c is a '\f', jump to is_space to return 1 */
 
-	cmpb $'\v', %dil /* Checks if c is a '\v' */
+	cmpb $11, %dil /* Checks if c is a '\v'. The number 11 is the decimal representation of \v */
 	je .is_space /* If c is a '\v', jump to is_space to return 1 */
 
 	movl $0, %eax /* if not '\t', '\r', '\n', '\f', or '\v', then return 0 */

@@ -136,6 +136,10 @@ void test_isspace(TestObjs *objs) {
 
   ASSERT(1 == wc_isspace(' '));
   ASSERT(1 == wc_isspace('\t'));
+  ASSERT(1 == wc_isspace('\r'));
+  ASSERT(1 == wc_isspace('\n'));
+  ASSERT(1 == wc_isspace('\f'));
+  ASSERT(1 == wc_isspace('\v'));
 
   ASSERT(0 == wc_isspace('a'));
   ASSERT(0 == wc_isspace('.'));
