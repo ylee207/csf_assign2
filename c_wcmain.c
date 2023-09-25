@@ -5,11 +5,9 @@
 // Suggested number of buckets for the hash table
 #define HASHTABLE_SIZE 13249
 
-// TODO: prototypes for helper functions
-
 int main(int argc, char **argv) {
   // stats (to be printed at end)
-FILE *in;
+  FILE *in;
   if (argc < 2) {
     // No filename provided, read from stdin
     in = stdin;
@@ -21,7 +19,7 @@ FILE *in;
       return 1;
     }
   }
-struct WordEntry * buckets[HASHTABLE_SIZE] = {NULL};
+  struct WordEntry * buckets[HASHTABLE_SIZE] = {NULL};
   uint32_t total_words = 0;
   uint32_t unique_words = 0;
   const unsigned char *best_word = (const unsigned char *) "";
@@ -50,9 +48,6 @@ struct WordEntry * buckets[HASHTABLE_SIZE] = {NULL};
     fclose(in);
   }
 
-
-  // TODO: make sure file is closed (if one was opened)
-  // TODO: make sure memory is freed
   for (int i = 0; i < HASHTABLE_SIZE; i++) {
     if (buckets[i] != NULL) {
     wc_free_chain(buckets[i]);
@@ -60,5 +55,3 @@ struct WordEntry * buckets[HASHTABLE_SIZE] = {NULL};
   }
   return 0;
 }
-
-// TODO: definitions of helper functions
