@@ -69,7 +69,6 @@ void wc_str_copy(unsigned char *dest, const unsigned char *source) {
     dest[i] = source[i];
   }
   dest[i] = '\0';
-
 }
 
 // Return 1 if the character code in c is a whitespace character,
@@ -84,21 +83,21 @@ void wc_str_copy(unsigned char *dest, const unsigned char *source) {
 //   '\f'
 //   '\v'
 int wc_isspace(unsigned char c) {
-    if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f' || c == '\v') {
-        return 1;  // True: c is a whitespace character
-    } else {
-        return 0;  // False: c is not a whitespace character
-    }
+  if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f' || c == '\v') {
+    return 1;  // True: c is a whitespace character
+  } else {
+    return 0;  // False: c is not a whitespace character
+  }
 }
 
 // Return 1 if the character code in c is an alphabetic character
 // ('A' through 'Z' or 'a' through 'z'), 0 otherwise.
 int wc_isalpha(unsigned char c) {
-    if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
-        return 1;  // True: c is an alphabetic character
-    } else {
-        return 0;  // False: c is not an alphabetic character
-    }
+  if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) {
+    return 1;  // True: c is an alphabetic character
+  } else {
+    return 0;  // False: c is not an alphabetic character
+  }
 }
 
 // Read the next word from given input stream, storing
@@ -113,54 +112,53 @@ int wc_isalpha(unsigned char c) {
 // MAX_WORDLEN characters, then only the first MAX_WORDLEN
 // characters in the sequence should be stored in the array.
 int wc_readnext(FILE *in, unsigned char *w) {
-    int i = 0;
-    unsigned char ch = fgetc(in);
-    
-    // Skip whitespace characters
-    while (!feof(in) && wc_isspace(ch)) {
-        ch = fgetc(in);
-    }
+  int i = 0;
+  unsigned char ch = fgetc(in);
+  
+  // Skip whitespace characters
+  while (!feof(in) && wc_isspace(ch)) {
+    ch = fgetc(in);
+  }
 
-    // If we reached the end of the file while skipping whitespace, return 0
-    if (feof(in)) {
-        return 0;
-    }
+  // If we reached the end of the file while skipping whitespace, return 0
+  if (feof(in)) {
+    return 0;
+  }
 
-    // Read characters into w until a space character is found or MAX_WORDLEN - 1 characters are read
-    while (!feof(in) && !wc_isspace(ch) && i < MAX_WORDLEN - 1) {
-        w[i++] = ch;
-        ch = fgetc(in);
-    }
-    
-    w[i] = '\0';  // Null-terminate the string
-    return 1;
+  // Read characters into w until a space character is found or MAX_WORDLEN - 1 characters are read
+  while (!feof(in) && !wc_isspace(ch) && i < MAX_WORDLEN - 1) {
+    w[i++] = ch;
+    ch = fgetc(in);
+  }
+  
+  w[i] = '\0';  // Null-terminate the string
+  return 1;
 }
 
 
 // Convert the NUL-terminated character string in the array
 // pointed-to by w so that every letter is lower-case.
 void wc_tolower(unsigned char *w) {
-    for (int i = 0; w[i] != '\0'; i++) {
-        if (w[i] >= 'A' && w[i] <= 'Z') {
-            w[i] = w[i] + ('a' - 'A');
-        }
+  for (int i = 0; w[i] != '\0'; i++) {
+    if (w[i] >= 'A' && w[i] <= 'Z') {
+      w[i] = w[i] + ('a' - 'A');
     }
+  }
 }
 
 // Remove any non-alphaabetic characters from the end of the
 // NUL-terminated character string pointed-to by w.
 
 void wc_trim_non_alpha(unsigned char *w) {
-    // Find the end of the string (just before the NUL-terminator)
-    int i;
-    for (i = 0; w[i] != '\0'; i++);
+  // Find the end of the string (just before the NUL-terminator)
+  int i;
+  for (i = 0; w[i] != '\0'; i++);
 
-    // Move backwards, trimming non-alphabetic characters
-    while (i > 0 && !wc_isalpha(w[i-1])) {
-        i--;
-    }
-    w[i] = '\0';
-
+  // Move backwards, trimming non-alphabetic characters
+  while (i > 0 && !wc_isalpha(w[i-1])) {
+    i--;
+  }
+  w[i] = '\0';
 }
 // Search the specified linked list of WordEntry objects for an object
 // containing the specified string.
@@ -189,7 +187,6 @@ struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char 
   we->count = 0;
   *inserted = 1;
   return we;
-
 }
 
 // Find or insert the WordEntry object for the given string (s), returning
@@ -200,18 +197,18 @@ struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char 
 // Returns a pointer to the WordEntry object in the appropriate linked list
 // which represents s.
 struct WordEntry *wc_dict_find_or_insert(struct WordEntry *buckets[], unsigned num_buckets, const unsigned char *s) {
-    uint32_t hash_val = wc_hash(s);
-    unsigned int bucket_index = hash_val % num_buckets;
+  uint32_t hash_val = wc_hash(s);
+  unsigned int bucket_index = hash_val % num_buckets;
 
-    int inserted;
-    struct WordEntry *result = wc_find_or_insert(buckets[bucket_index], s, &inserted);
+  int inserted;
+  struct WordEntry *result = wc_find_or_insert(buckets[bucket_index], s, &inserted);
 
-    // Only update the bucket head if a new word was inserted.
-    if (inserted) {
-        buckets[bucket_index] = result;
-    }
+  // Only update the bucket head if a new word was inserted.
+  if (inserted) {
+      buckets[bucket_index] = result;
+  }
 
-    return result;
+  return result;
 }
 
 // Free all of the nodes in given linked list of WordEntry objects.
