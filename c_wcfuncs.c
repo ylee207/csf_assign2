@@ -29,7 +29,6 @@ uint32_t wc_hash(const unsigned char *w) {
     hash_code = hash_code * 33 + w[i];
   }
  return hash_code;
-  // TODO: implement
 }
 
 // Compare two strings lexicographically. Return
@@ -44,7 +43,7 @@ uint32_t wc_hash(const unsigned char *w) {
 // "hi" would compare as less than "high".
 int wc_str_compare(const unsigned char *lhs, const unsigned char *rhs) {
   int i;
-  for (i = 0; lhs[i] != '\0' && rhs[i] != '\0'; i++) {
+  for (i = 0; lhs[i] != '\0' && rhs[i] != '\0'; i++) { //compares the lhs to rhs
     if(lhs[i] > rhs[i]) {
       return 1;
     }
@@ -52,27 +51,25 @@ int wc_str_compare(const unsigned char *lhs, const unsigned char *rhs) {
       return -1;
     }
   }
-  if (lhs[i] != '\0') {
+  if (lhs[i] != '\0') { //if lhs is longer, lhs is bigger
     return 1;
   }
-  else if (rhs[i] != '\0') {
+  else if (rhs[i] != '\0') { //if rhs is longer, rhs is bigger
     return -1;
   }
-  else {
+  else { //they are the same
     return 0;
   }
-  // TODO: implement
 }
 
 // Copy NUL-terminated source string to the destination buffer.
 void wc_str_copy(unsigned char *dest, const unsigned char *source) {
   int i;
-  for (i = 0; source[i] != '\0'; i++) {
+  for (i = 0; source[i] != '\0'; i++) { //copy each char into the new string.
     dest[i] = source[i];
   }
   dest[i] = '\0';
 
-  // TODO: implement
 }
 
 // Return 1 if the character code in c is a whitespace character,
@@ -152,7 +149,7 @@ void wc_tolower(unsigned char *w) {
 
 // Remove any non-alphaabetic characters from the end of the
 // NUL-terminated character string pointed-to by w.
-int wtf;
+
 void wc_trim_non_alpha(unsigned char *w) {
     // Find the end of the string (just before the NUL-terminator)
     int i;
@@ -163,11 +160,7 @@ void wc_trim_non_alpha(unsigned char *w) {
         i--;
     }
     w[i] = '\0';
-  // if (strcmp((const char *)w, (const char *)"the") == 0) {
-  //  printf("%s \n", w);
-  //  wtf++;
-  //  printf("%d", wtf);
-  // }
+
 }
 // Search the specified linked list of WordEntry objects for an object
 // containing the specified string.
@@ -184,13 +177,13 @@ void wc_trim_non_alpha(unsigned char *w) {
 struct WordEntry *wc_find_or_insert(struct WordEntry *head, const unsigned char *s, int *inserted) {
   struct WordEntry *curr = head;
   while(curr != NULL) {
-    if (wc_str_compare(curr->word, s) == 0) {
+    if (wc_str_compare(curr->word, s) == 0) { //if the word already exists, return the node.
       *inserted = 0;
       return curr;
     }
     curr = curr->next;
   }
-  struct WordEntry *we = malloc(sizeof(struct WordEntry));
+  struct WordEntry *we = malloc(sizeof(struct WordEntry)); //if the word doesn't exist, we insert it into the hashmap.
   wc_str_copy(we->word, s);
   we->next = head;
   we->count = 0;
