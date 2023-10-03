@@ -40,18 +40,18 @@ wc_hash:
 	/* TODO: implement */
 	movl $5381, %r10d /* Storing uint32_t hash_code = 5381 */
 
-.Lloop:
+.Lhash_loop:
 	cmpb $0, (%rdi) 				/* Checking if the dereferenced char is a null terminator */
-	je .Ldone 						/* If dereferenced char is a null terminator, then we go finish */
+	je .Ldone_hash 						/* If dereferenced char is a null terminator, then we go finish */
 	movl $33, %esi 					/* store 33 in %esi */ 
 	imull %esi, %r10d 				/* hash_code = hash_code * 33 */
 	movzbl (%rdi), %esi 			/* zero extend w[i] to 32-bit */
 	addl %esi, %r10d 				/* hash_code = hash_code + w[i] */
 	incq %rdi 						/* Increment the pointer */
-	jmp .Lloop
+	jmp .Lhash_loop						/* Iterate through loop again */
 
-.Ldone:
-	movl %r10d, %eax
+.Ldone_hash:
+	movl %r10d, %eax				/* Store the hash_code as a return value */
 	ret
 
 /*
@@ -129,7 +129,19 @@ wc_str_compare:
  */
 	.globl wc_str_copy
 wc_str_copy:
-	/* TODO: implement */
+	jmp .Lstr_copy_loop /* go into for loop to copy the contents iteratively */
+	
+.Lstr_copy_loop:
+	movb (%rsi), %r11b /* Store source[i] to %r11 */
+	cmpb $0, %r11b /* Check if source[i] is a null terminator */
+	je .Lstr_copy_loop_done
+	movb %r11b, (%rdi) /* Put source[i] into dest[i] */
+	incq %rdi
+	incq %rsi
+	jmp .Lstr_copy_loop
+
+.Lstr_copy_loop_done:
+	movb $0, (%rdi) /* Put null terminator to dest in the end */
 	ret
 
 /*
