@@ -113,25 +113,26 @@ int wc_isalpha(unsigned char c) {
 // characters in the sequence should be stored in the array.
 int wc_readnext(FILE *in, unsigned char *w) {
   int i = 0;
-  unsigned char ch = fgetc(in);
-  
+  int ch = fgetc(in);
+
   // Skip whitespace characters
-  while (!feof(in) && wc_isspace(ch)) {
+  while (ch != EOF && wc_isspace(ch)) {
     ch = fgetc(in);
   }
 
-  // If we reached the end of the file while skipping whitespace, return 0
-  if (feof(in)) {
+  // If reached the end of the file (or error) while skipping whitespace, return 0.
+  if (ch == EOF) {
     return 0;
   }
 
   // Read characters into w until a space character is found or MAX_WORDLEN - 1 characters are read
-  while (!feof(in) && !wc_isspace(ch) && i < MAX_WORDLEN - 1) {
-    w[i++] = ch;
+  while (ch != EOF && !wc_isspace(ch) && i < MAX_WORDLEN - 1) {
+    w[i++] = (unsigned char)ch;  // Cast ch to unsigned char before assigning
     ch = fgetc(in);
   }
-  
-  w[i] = '\0';  // Null-terminate the string
+
+  // Null-terminate the string
+  w[i] = '\0'; 
   return 1;
 }
 
