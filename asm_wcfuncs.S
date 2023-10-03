@@ -38,6 +38,20 @@
 	.globl wc_hash
 wc_hash:
 	/* TODO: implement */
+	movl $5381, %r10d /* Storing uint32_t hash_code = 5381 */
+
+.Lloop:
+	cmpb $0, (%rdi) 				/* Checking if the dereferenced char is a null terminator */
+	je .Ldone 						/* If dereferenced char is a null terminator, then we go finish */
+	movl $33, %esi 					/* store 33 in %esi */ 
+	imull %esi, %r10d 				/* hash_code = hash_code * 33 */
+	movzbl (%rdi), %esi 			/* zero extend w[i] to 32-bit */
+	addl %esi, %r10d 				/* hash_code = hash_code + w[i] */
+	incq %rdi 						/* Increment the pointer */
+	jmp .Lloop
+
+.Ldone:
+	movl %r10d, %eax
 	ret
 
 /*
@@ -57,28 +71,28 @@ wc_hash:
  */
 	.globl wc_str_compare
 wc_str_compare:
-	movl $0, %r10d /* Initialize for loop counter 'i' to 0 */
-	jmp .LcharCompareLoop /* After initializing index i = 0, go into the loop */
+	movl $0, %r10d 					/* Initialize for loop counter 'i' to 0 */
+	jmp .LcharCompareLoop 			/* After initializing index i = 0, go into the loop */
 
 .LcharCompareLoop:
-	leal (%rdi, %r10, 1), %edx /* Calculate the address of ith index element of &lhs */
-	movzbl (%rdx), %r11d /* Store the the dereferenced char at the ith index of lhs */
-	cmpl $'\0', %r11d /* Check if the ith char of lhs is not '\0'. If it is '\0', jump off the for loop */
-	je .LcheckPrefixOfOther /* If lhs[i] is '\0', we should jump to check if lhs or rhs has a prefix of each other to compare. */
+	leal (%rdi, %r10, 1), %edx 		/* Calculate the address of ith index element of &lhs */
+	movzbl (%rdx), %r11d 			/* Store the the dereferenced char at the ith index of lhs */
+	cmpl $'\0', %r11d 				/* Check if the ith char of lhs is not '\0'. If it is '\0', jump off the for loop */
+	je .LcheckPrefixOfOther 		/* If lhs[i] is '\0', we should jump to check if lhs or rhs has a prefix of each other to compare. */
 
-	leal (%rsi, %r10, 1), %ecx /* Calculate the address of ith index element of &rhs */
-	movzbl (%rcx), %r12d /* Store the dereferenced char at the ith index of rhs */
-	cmpl $'\0', %r12d /* Check if the ith char of rhs is not '\0'. If it is '\0', jump off the for loop */
-	je .LcheckPrefixOfOther /* If rhs[i] is '\0', we should jump to check if lhs or rhs has a prefix of each other to compare. */
+	leal (%rsi, %r10, 1), %ecx 		/* Calculate the address of ith index element of &rhs */
+	movzbl (%rcx), %edx 			/* Store the dereferenced char at the ith index of rhs */
+	cmpl $'\0', %edx 				/* Check if the ith char of rhs is not '\0'. If it is '\0', jump off the for loop */
+	je .LcheckPrefixOfOther 		/* If rhs[i] is '\0', we should jump to check if lhs or rhs has a prefix of each other to compare. */
 
-	cmpl %r12d, %r11d /* Compare rhs[i] and lhs[i] */
-	jg .LlhsGreaterThanRhs /* If lhs[i] is greater than rhs[i], then jump to return 1 */
+	cmpl %edx, %r11d 				/* Compare rhs[i] and lhs[i] */
+	jg .LlhsGreaterThanRhs 			/* If lhs[i] is greater than rhs[i], then jump to return 1 */
 
-	cmpl %r12d, %r11d /* Compare rhs[i] and lhs[i] */
-	jl .LrhsGreaterThanLhs /* If rhs[i] is greater than lhs[i], then jump to return -1; */
+	cmpl %edx, %r11d 				/* Compare rhs[i] and lhs[i] */
+	jl .LrhsGreaterThanLhs 			/* If rhs[i] is greater than lhs[i], then jump to return -1; */
 	
-	addl $1, %r10d /* Increment index i */
-	jmp .LcharCompareLoop /* Continue with the loop */
+	addl $1, %r10d 					/* Increment index i */
+	jmp .LcharCompareLoop 			/* Continue with the loop */
 
 		/* From this point, we are comparing if one string is a prefix of the other. */
 		/* Here, index i is the last char of of lhs or rhs. */
@@ -86,25 +100,25 @@ wc_str_compare:
 		/* If lhs[i] != '\0', then it means lhs is bigger because it has more chars after */
 		/* Likewise, if rhs[i] != '\0', then it means rhs is bigger because it has more chars after */
 .LcheckPrefixOfOther:
-	leal (%rdi, %r10, 1), %edx /* Calculate the address of lhs[i] */
-	movzbl (%rdx), %r11d /* Store lhs[i] */
-	cmpl $'\0', %r11d /* Check if lhs[i] is not '\0' */
-	jne .LlhsGreaterThanRhs /* If lhs[i] != '\0', then jump return 1 because it means lhs is bigger than rhs */
+	leal (%rdi, %r10, 1), %edx 		/* Calculate the address of lhs[i] */
+	movzbl (%rdx), %r11d 			/* Store lhs[i] */
+	cmpl $'\0', %r11d 				/* Check if lhs[i] is not '\0' */
+	jne .LlhsGreaterThanRhs 		/* If lhs[i] != '\0', then jump return 1 because it means lhs is bigger than rhs */
 
-	leal (%rsi, %r10, 1), %ecx /* Calculate the address of rhs[i] */
-	movzbl (%rcx), %r12d /* Store rhs[i] */
-	cmpl $'\0', %r12d /* Check if rhs[i] is not '\0' */
-	jne .LrhsGreaterThanLhs /* If rhs[i] != '\0', then jump return -1 because it means rhs is bigger than lhs */
+	leal (%rsi, %r10, 1), %ecx 		/* Calculate the address of rhs[i] */
+	movzbl (%rcx), %edx 			/* Store rhs[i] */
+	cmpl $'\0', %edx 				/* Check if rhs[i] is not '\0' */
+	jne .LrhsGreaterThanLhs 		/* If rhs[i] != '\0', then jump return -1 because it means rhs is bigger than lhs */
 
-	movl $0, %eax /* Here, every char in string are the same, so return 0 */
+	movl $0, %eax 					/* Here, every char in string are the same, so return 0 */
 	ret
 
 .LlhsGreaterThanRhs:
-	movl $1, %eax /* This part implies that lhs is greater than rhs. So return 1 */
+	movl $1, %eax 					/* This part implies that lhs is greater than rhs. So return 1 */
 	ret
 
 .LrhsGreaterThanLhs:
-	movl $-1, %eax /* This part implies that rhs is greater than lhs. So return -1 */
+	movl $-1, %eax					/* This part implies that rhs is greater than lhs. So return -1 */
 	ret
 
 /*
@@ -136,29 +150,29 @@ wc_str_copy:
  */
 	.globl wc_isspace
 wc_isspace:
-	cmpb $' ', %dil /* Checks if c is a ' ' */
-	je .is_space /* If c is a ' ', jump to is_space to return 1 */
+	cmpb $' ', %dil 				/* Checks if c is a ' ' */
+	je .Lis_space 					/* If c is a ' ', jump to Lis_space to return 1 */
 
-	cmpb $'\t', %dil /* Checks if c is a '\t' */
-	je .is_space /* If c is a '\t', jump to is_space to return 1 */
+	cmpb $'\t', %dil 				/* Checks if c is a '\t' */
+	je .Lis_space 					/* If c is a '\t', jump to Lis_space to return 1 */
 
-	cmpb $'\r', %dil /* Checks if c is a '\r' */
-	je .is_space /* If c is a '\r', jump to is_space to return 1 */
+	cmpb $'\r', %dil 				/* Checks if c is a '\r' */
+	je .Lis_space 					/* If c is a '\r', jump to Lis_space to return 1 */
 
-	cmpb $'\n', %dil /* Checks if c is a '\n' */
-	je .is_space /* If c is a '\n', jump to is_space to return 1 */
+	cmpb $'\n', %dil 				/* Checks if c is a '\n' */
+	je .Lis_space 					/* If c is a '\n', jump to Lis_space to return 1 */
 
-	cmpb $'\f', %dil /* Checks if c is a '\f' */
-	je .is_space /* If c is a '\f', jump to is_space to return 1 */
+	cmpb $'\f', %dil 				/* Checks if c is a '\f' */
+	je .Lis_space 					/* If c is a '\f', jump to Lis_space to return 1 */
 
-	cmpb $11, %dil /* Checks if c is a '\v'. The number 11 is the decimal representation of \v */
-	je .is_space /* If c is a '\v', jump to is_space to return 1 */
+	cmpb $11, %dil 					/* Checks if c is a '\v'. The number 11 is the decimal representation of \v */
+	je .Lis_space 					/* If c is a '\v', jump to Lis_space to return 1 */
 
-	movl $0, %eax /* if not '\t', '\r', '\n', '\f', or '\v', then return 0 */
+	movl $0, %eax 					/* if not '\t', '\r', '\n', '\f', or '\v', then return 0 */
 	ret
 
-.is_space:
-	movl $1, %eax /* If jumped to here, it means it is a space character. So return 1. */
+.Lis_space:
+	movl $1, %eax 					/* If jumped to here, it means it is a space character. So return 1. */
 	ret
 
 /*
@@ -170,27 +184,27 @@ wc_isspace:
  */
 	.globl wc_isalpha
 wc_isalpha:
-	cmpb $'A', %dil /* Check if c is greater than or equal to 'A'. If c < 'A', it means it is not greater or equal to 'A', so not an upper case letter. */
-	jl .check_lower_case /* If c < 'A', then jump to check_lower_case to check if it's lower case */
+	cmpb $'A', %dil 				/* Check if c is greater than or equal to 'A'. If c < 'A', it means it is not greater or equal to 'A', so not an upper case letter. */
+	jl .Lcheck_lower_case 			/* If c < 'A', then jump to Lcheck_lower_case to check if it's lower case */
 
-	cmpb $'Z', %dil /* Check if c is less than or equal to 'Z'. If c > 'Z', it means it is not less than or equal to 'Z', so not an upper case letter. */
-	jg .check_lower_case /* If c > 'Z', then jump to check_lower_case to check if it's lower case */
+	cmpb $'Z', %dil 				/* Check if c is less than or equal to 'Z'. If c > 'Z', it means it is not less than or equal to 'Z', so not an upper case letter. */
+	jg .Lcheck_lower_case 			/* If c > 'Z', then jump to Lcheck_lower_case to check if it's lower case */
 
-	movl $1, %eax /* Here, it means it is an upper case letter, so let's return 1 */
+	movl $1, %eax 					/* Here, it means it is an upper case letter, so let's return 1 */
 	ret
 
-.check_lower_case:
-	cmpb $'a', %dil /* Here, it is not an upper case, so check if c is a lower case. (check if it's greater or equal to 'a' to be alphebetic) */
-	jl .not_alphabetic /* If c is less than 'a', then it is not a lower case (also not an upper case), so jump to return 0. */
+.Lcheck_lower_case:
+	cmpb $'a', %dil 				/* Here, it is not an upper case, so check if c is a lower case. (check if it's greater or equal to 'a' to be alphebetic) */
+	jl .Lnot_alphabetic 			/* If c is less than 'a', then it is not a lower case (also not an upper case), so jump to return 0. */
 
-	cmpb $'z', %dil /* Here, it is not an upper case, so check if c is lower case. (check if it's less than or equal to 'z' to be alphabetic) */
-	jg .not_alphabetic /* If c is greater than 'z', then it is not a lower case (also not an upper case) */
+	cmpb $'z', %dil 				/* Here, it is not an upper case, so check if c is lower case. (check if it's less than or equal to 'z' to be alphabetic) */
+	jg .Lnot_alphabetic 			/* If c is greater than 'z', then it is not a lower case (also not an upper case) */
 
-	movl $1, %eax /* Here, it means it is a lower case letter, so let's return 1 */ 
+	movl $1, %eax 					/* Here, it means it is a lower case letter, so let's return 1 */ 
 	ret
 
-.not_alphabetic:
-	movl $0, %eax /* Here, it means it is neither a lower or upper, so let's return 0. */
+.Lnot_alphabetic:
+	movl $0, %eax 					/* Here, it means it is neither a lower or upper, so let's return 0. */
 	ret
 
 /*
