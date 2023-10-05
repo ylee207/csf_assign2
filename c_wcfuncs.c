@@ -112,18 +112,19 @@ int wc_isalpha(unsigned char c) {
 // MAX_WORDLEN characters, then only the first MAX_WORDLEN
 // characters in the sequence should be stored in the array.
 int wc_readnext(FILE *in, unsigned char *w) {
+  int i = 0;
   int ch = fgetc(in); // Get the first character in the file.
+
+  // Skip whitespace characters
+  while (ch != EOF && wc_isspace(ch)) {
+    ch = fgetc(in);
+  }
 
   // If reached the end of the file while skipping whitespace, return 0.
   if (ch == EOF) {
     return 0;
   }
 
-  // Skip whitespace characters
-  while (wc_isspace(ch)) {
-    ch = fgetc(in);
-  }
-  int i = 0;
   // Read characters into w until a space character is found or MAX_WORDLEN - 1 characters are read
   while (ch != EOF && !wc_isspace(ch) && i < MAX_WORDLEN - 1) {
     w[i++] = (unsigned char)ch;  // Cast ch to unsigned char before assigning
