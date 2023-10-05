@@ -3,6 +3,7 @@
  */
 
 #define MAX_WORDLEN 63
+#define MAX_WORDLEN_WITHOUT_NULL_TERM 62
 
 /*
  * Offsets for the fields of the struct WordEntry data type
@@ -55,6 +56,7 @@ wc_hash:
 	ret
 
 /*
+
  * Compare two strings lexicographically. Return
  *
  * - a negative value if lhs string is less than rhs string
@@ -70,6 +72,7 @@ wc_hash:
  *    int wc_str_compare(const unsigned char *lhs, const unsigned char *rhs);
  */
 	.globl wc_str_compare
+
 wc_str_compare:
 	movl $0, %r10d 					/* Initialize for loop counter 'i' to 0 */
 	jmp .LcharCompareLoop 			/* After initializing index i = 0, go into the loop */
@@ -77,12 +80,12 @@ wc_str_compare:
 .LcharCompareLoop:
 	leal (%rdi, %r10, 1), %edx 		/* Calculate the address of ith index element of &lhs */
 	movzbl (%rdx), %r11d 			/* Store the the dereferenced char at the ith index of lhs */
-	cmpl $'\0', %r11d 				/* Check if the ith char of lhs is not '\0'. If it is '\0', jump off the for loop */
+	cmpl $0, %r11d 				/* Check if the ith char of lhs is not '\0'. If it is '\0', jump off the for loop */
 	je .LcheckPrefixOfOther 		/* If lhs[i] is '\0', we should jump to check if lhs or rhs has a prefix of each other to compare. */
 
 	leal (%rsi, %r10, 1), %ecx 		/* Calculate the address of ith index element of &rhs */
 	movzbl (%rcx), %edx 			/* Store the dereferenced char at the ith index of rhs */
-	cmpl $'\0', %edx 				/* Check if the ith char of rhs is not '\0'. If it is '\0', jump off the for loop */
+	cmpl $0, %edx 				/* Check if the ith char of rhs is not '\0'. If it is '\0', jump off the for loop */
 	je .LcheckPrefixOfOther 		/* If rhs[i] is '\0', we should jump to check if lhs or rhs has a prefix of each other to compare. */
 
 	cmpl %edx, %r11d 				/* Compare rhs[i] and lhs[i] */
@@ -102,12 +105,12 @@ wc_str_compare:
 .LcheckPrefixOfOther:
 	leal (%rdi, %r10, 1), %edx 		/* Calculate the address of lhs[i] */
 	movzbl (%rdx), %r11d 			/* Store lhs[i] */
-	cmpl $'\0', %r11d 				/* Check if lhs[i] is not '\0' */
+	cmpl $0, %r11d 				/* Check if lhs[i] is not '\0' */
 	jne .LlhsGreaterThanRhs 		/* If lhs[i] != '\0', then jump return 1 because it means lhs is bigger than rhs */
 
 	leal (%rsi, %r10, 1), %ecx 		/* Calculate the address of rhs[i] */
 	movzbl (%rcx), %edx 			/* Store rhs[i] */
-	cmpl $'\0', %edx 				/* Check if rhs[i] is not '\0' */
+	cmpl $0, %edx 				/* Check if rhs[i] is not '\0' */
 	jne .LrhsGreaterThanLhs 		/* If rhs[i] != '\0', then jump return -1 because it means rhs is bigger than lhs */
 
 	movl $0, %eax 					/* Here, every char in string are the same, so return 0 */
@@ -235,10 +238,73 @@ wc_isalpha:
  * C function prototype:
  *    int wc_readnext(FILE *in, unsigned char *w);
  */
+
+/*
+ * %r12 - (first param) FILE *in
+ * %r13 - (second param) *w
+ * %r14 - index i
+ * %r15 - ch
+ */
 	.globl wc_readnext
 wc_readnext:
-	/* TODO: implement */
+	pushq %r12
+	pushq %r13
+	pushq %r14
+	pushq %r15
+
+	leaq (%rdi), %r12
+	leaq (%rsi), %r13
+
+	leaq (%r12), %rdi
+	call fgetc
+	movb %al, %r15b
+
+	cmpb $-1, %r15b
+	je .Lreached_end_of_file
+	movl $0, %r14d					/* index i = 0 */
+	jmp .Lloop_skip_whitspace_char
+
+.Lreached_end_of_file:
+	popq %r15
+	popq %r14
+	popq %r13
+	popq %r12
+	movl $0, %eax
 	ret
+
+.Lloop_skip_whitspace_char:
+	movb %r15b, %dil
+	call wc_isspace
+	cmpl $1, %eax
+	jne .Lloop_read_chars
+	jmp .Lloop_skip_whitspace_char
+
+.Lloop_read_chars:
+	cmpb $-1, %r15b
+	je .Lnull_terminate_done
+	movb %r15b, %dil
+	call wc_isspace
+	cmpl $1, %eax
+	je .Lnull_terminate_done
+	cmpl $MAX_WORDLEN_WITHOUT_NULL_TERM, %r14d
+	jge .Lnull_terminate_done
+	movb %r15b, (%r13, %r14, 1)
+	incl %r14d
+	leaq (%r12), %rdi
+	call fgetc
+	movb %al, %r15b
+	jmp .Lloop_read_chars
+
+.Lnull_terminate_done:
+	movq $0, (%r13, %r14, 1)
+	movl $1, %eax
+	popq %r15
+	popq %r14
+	popq %r13
+	popq %r12
+	ret
+
+
 
 /*
  * Convert the NUL-terminated character string in the array
